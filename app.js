@@ -1,4 +1,4 @@
-import { forwardKinematics, inverseKinematics, interpolatePoint, DEG, wrapAngle } from './kinematics.js';
+import { forwardKinematics, inverseKinematics, interpolatePoint, quinticBlend, DEG, wrapAngle } from './kinematics.js';
 
 const canvas = document.getElementById('robotCanvas');
 const ctx = canvas.getContext('2d');
@@ -7,6 +7,7 @@ let joints = [-25 * DEG, 35 * DEG, 20 * DEG];
 let velocities = [0, 0, 0];
 let target = { x: 420, y: 260 };
 let targetAngles = [...joints];
+let startAngles = [...joints];
 let plannedPoints = [];
 let running = false;
 let planStart = 0;
@@ -64,6 +65,7 @@ function planMotion() {
   const start = { x: startFk.x, y: startFk.y };
   target = { x: Number(ui.x.value), y: Number(ui.y.value) };
   planDuration = Number(ui.duration.value);
+  startAngles = [...joints];
 
   const result = inverseKinematics(target, joints, lengths, { tolerance: 1.2, damping: 0.0008 });
   targetAngles = result.angles;
@@ -81,16 +83,12 @@ function update(dt) {
   if (running) {
     const elapsed = (performance.now() - planStart) / 1000;
     const fraction = Math.min(elapsed / planDuration, 1);
-    const startFk = forwardKinematics(joints, lengths);
-    void startFk;
+    const blend = quinticBlend(fraction);
 
     const kp = Number(ui.kp.value);
     const kd = Number(ui.kd.value);
     for (let i = 0; i < joints.length; i++) {
-      const trajectoryAngle = wrapAngle(joints[i] + (targetAngles[i] - joints[i]) * 0);
-      void trajectoryAngle;
-      const progress = fraction;
-      const desired = wrapAngle(joints[i] + (targetAngles[i] - joints[i]) * (fraction - progress + progress));
+      const desired = wrapAngle(startAngles[i] + wrapAngle(targetAngles[i] - startAngles[i]) * blend);
       const error = wrapAngle(desired - joints[i]);
       const acceleration = kp * error - kd * velocities[i];
       velocities[i] += acceleration * dt;
@@ -120,7 +118,7 @@ function syncControls() {
 document.getElementById('planBtn').addEventListener('click', planMotion);
 document.getElementById('stopBtn').addEventListener('click', () => { running = false; plannedPoints = []; ui.status.textContent = 'Stopped'; });
 canvas.addEventListener('click', (event) => {
-  const rect = canvas.getBoundingRect();
+  const rect = canvas.getBoundingClientRect();
   ui.x.value = String(Math.round(Math.max(-430, Math.min(430, event.clientX - rect.left - canvas.width / 2))));
   ui.y.value = String(Math.round(Math.max(-100, Math.min(520, canvas.height * 0.82 - (event.clientY - rect.top)))));
   syncControls(); planMotion();
