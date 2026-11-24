@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07111f" />
+  <title>Robot Arm Kinematics & Control</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">Mechanical Engineering Portfolio Project</p>
+        <h1>Planar Robot Arm</h1>
+      </div>
+      <span id="status" class="status">Simulation running</span>
+    </header>
+
+    <section class="grid">
+      <article class="panel robot-panel">
+        <canvas id="robotCanvas" width="760" height="560" aria-label="Robot arm simulation"></canvas>
+        <div class="legend">
+          <span><i class="dot target"></i>Target</span>
+          <span><i class="dot actual"></i>Actual tool</span>
+          <span><i class="dot path"></i>Planned path</span>
+        </div>
+      </article>
+
+      <aside class="panel controls">
+        <h2>Motion controls</h2>
+
+        <label>X target <output id="xOut">420</output> mm</label>
+        <input id="xTarget" type="range" min="-430" max="430" value="420" />
+
+        <label>Y target <output id="yOut">260</output> mm</label>
+        <input id="yTarget" type="range" min="-100" max="520" value="260" />
+
+        <label>Trajectory duration <output id="timeOut">3.0</output> s</label>
+        <input id="duration" type="range" min="1" max="8" step="0.1" value="3" />
+
+        <div class="button-row">
+          <button id="planBtn" class="primary">Plan & Run</button>
+          <button id="stopBtn">Stop</button>
+        </div>
+
+        <h3>Controller</h3>
+        <label>Kp <output id="kpOut">18.0</output></label>
+        <input id="kp" type="range" min="2" max="35" step="0.5" value="18" />
+
+        <label>Kd <output id="kdOut">2.2</output></label>
+        <input id="kd" type="range" min="0" max="8" step="0.1" value="2.2" />
+
+        <div class="metrics">
+          <div><span>Tip error</span><strong id="errorMetric">0.0 mm</strong></div>
+          <div><span>Max reach</span><strong id="reachMetric">660 mm</strong></div>
+          <div><span>IK solution</span><strong id="ikMetric">--</strong></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel explanation">
+      <h2>Engineering summary</h2>
+      <div class="summary-grid">
+        <p><strong>Forward kinematics</strong><br />Maps 3 joint angles to the Cartesian tool position.</p>
+        <p><strong>Inverse kinematics</strong><br />Uses damped least-squares Jacobian control to solve joint angles.</p>
+        <p><strong>Trajectory</strong><br />Uses a quintic position profile for smooth velocity and acceleration.</p>
+        <p><strong>Joint control</strong><br />Independent PD controllers track the generated trajectory.</p>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
