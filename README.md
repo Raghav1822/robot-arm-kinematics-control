@@ -1,46 +1,49 @@
 # 3-Link Robot Arm: Inverse Kinematics & Motion Control
 
-[![Live demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-58d7e8)](https://raghav1822.github.io/robot-arm-kinematics-control/)
-[![Tests](https://img.shields.io/badge/Tests-node:test-ff9f43)](./tests/kinematics.test.mjs)
+An interactive MATLAB simulation of a 3-link planar robot arm. It demonstrates forward and inverse kinematics, Cartesian trajectory generation, joint-level PD control, and live visualization.
 
-An interactive 3-link planar robot-arm project covering the complete engineering workflow: forward kinematics, inverse kinematics, Cartesian trajectory generation, joint-level PD control, and in-browser visualization.
+## Run the simulation
 
-## Live demo
+Open MATLAB in this repository directory and run:
 
-Open the deployed app: **https://raghav1822.github.io/robot-arm-kinematics-control/**
+```matlab
+robot_arm_kinematics_control
+```
 
-Move the sliders or click the workspace to set a target, then select **Plan & Run**. The controller solves inverse kinematics and follows a smooth quintic trajectory.
+Use the target and controller sliders, then select **Plan & Run**. The simulation solves inverse kinematics and follows a quintic Cartesian trajectory. Select **Stop** to interrupt motion.
 
 ## Technical approach
 
-- **Forward kinematics:** iterative joint transforms compute every link frame and the tool position.
-- **Inverse kinematics:** damped least-squares pseudoinverse solves the 3R planar manipulator redundantly and numerically.
-- **Trajectory planning:** a quintic polynomial provides continuous position, bounded velocity, and zero velocity at endpoints.
-- **Motion control:** independent proportional-derivative joint control tracks planned angles.
-- **Workspace visualization:** canvas-based 220 mm link model with planned path and target position.
+- **Forward kinematics:** cumulative planar joint transforms calculate link endpoints and the tool position.
+- **Inverse kinematics:** damped least-squares Jacobian iterations solve the redundant 3R arm while limiting joint angles.
+- **Trajectory planning:** a quintic blend interpolates the Cartesian path with zero endpoint velocity and acceleration.
+- **Motion control:** independent proportional-derivative controllers track the planned joint angles.
+- **Visualization:** MATLAB graphics display the 220 mm links, workspace, target, planned path, and live tip error.
 
-## Run locally
-
-```bash
-npm test
-npm run serve
-```
-
-Then open `http://localhost:8080`.
+All angles are in radians internally; Cartesian coordinates and link lengths are in millimeters.
 
 ## Project structure
 
 ```text
-index.html                 Interactive interface
-styles.css                 Responsive dashboard styling
-kinematics.js              Kinematics and trajectory functions
-app.js                     Simulation, controller, and canvas rendering
-tests/kinematics.test.mjs  Unit tests for core math
+robot_arm_kinematics_control.m   Interactive simulation and controls
+forward_kinematics.m             Planar forward-kinematics model
+robot_jacobian.m                 Cartesian Jacobian
+inverse_kinematics.m             Damped least-squares inverse kinematics
+quintic_blend.m                  Quintic trajectory profile
+interpolate_point.m              Cartesian trajectory interpolation
+wrap_angle.m                     Angle normalization helper
+tests/testRobotArmKinematics.m   MATLAB unit tests
 ```
 
-## Validation
+## Tests
 
-Run `npm test`. The test suite verifies the straight-arm forward model, a representative inverse-kinematics solution, quintic endpoint conditions, and exact endpoint interpolation.
+Run the MATLAB unit tests from the repository directory:
+
+```matlab
+runtests('tests')
+```
+
+The tests cover the straight-arm forward model, Jacobian derivatives, inverse-kinematics convergence, and trajectory endpoint behavior.
 
 ## Future engineering extensions
 
