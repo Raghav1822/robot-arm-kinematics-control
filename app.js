@@ -1,8 +1,10 @@
-import { forwardKinematics, inverseKinematics, interpolatePoint, quinticBlend, DEG, wrapAngle } from './kinematics.js';
+import { forwardKinematics, inverseKinematics, interpolatePoint, quinticBlend, stepJointController, DEG, wrapAngle } from './kinematics.js';
 
 const canvas = document.getElementById('robotCanvas');
 const ctx = canvas.getContext('2d');
 const lengths = [220, 220, 220];
+const settleTolerance = 1.5;
+const settleTimeout = 3;
 let joints = [-25 * DEG, 35 * DEG, 20 * DEG];
 let velocities = [0, 0, 0];
 let target = { x: 420, y: 260 };
@@ -87,16 +89,27 @@ function update(dt) {
 
     const kp = Number(ui.kp.value);
     const kd = Number(ui.kd.value);
+    const desiredAngles = [];
     for (let i = 0; i < joints.length; i++) {
-      const desired = wrapAngle(startAngles[i] + wrapAngle(targetAngles[i] - startAngles[i]) * blend);
-      const error = wrapAngle(desired - joints[i]);
-      const acceleration = kp * error - kd * velocities[i];
-      velocities[i] += acceleration * dt;
-      velocities[i] *= 0.995;
-      joints[i] = wrapAngle(joints[i] + velocities[i] * dt);
+      desiredAngles.push(wrapAngle(startAngles[i] + wrapAngle(targetAngles[i] - startAngles[i]) * blend));
     }
 
-    if (fraction >= 1) running = false;
+    ({ angles: joints, velocities } = stepJointController(joints, velocities, desiredAngles, dt, kp, kd));
+
+    if (fraction >= 1) {
+      const fk = forwardKinematics(joints, lengths);
+      const tipError = Math.hypot(target.x - fk.x, target.y - fk.y);
+      const maxVelocity = Math.max(...velocities.map(Math.abs));
+      if (tipError <= settleTolerance && maxVelocity <= 0.02) {
+        running = false;
+        ui.status.textContent = 'Simulation ready';
+      } else if (elapsed >= planDuration + settleTimeout) {
+        running = false;
+        ui.status.textContent = 'Motion incomplete';
+      } else {
+        ui.status.textContent = 'Settling at target';
+      }
+    }
   }
 }
 
@@ -105,7 +118,6 @@ function animate(now) {
   update(dt); drawGrid(); drawPath(); drawArm();
   const fk = forwardKinematics(joints, lengths);
   ui.error.textContent = `${Math.hypot(target.x - fk.x, target.y - fk.y).toFixed(1)} mm`;
-  if (!running) ui.status.textContent = 'Simulation ready';
   requestAnimationFrame(animate);
 }
 
