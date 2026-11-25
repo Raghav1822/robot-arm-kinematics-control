@@ -96,3 +96,18 @@ export function interpolatePoint(start, end, fraction) {
   const s = quinticBlend(fraction);
   return { x: start.x + (end.x - start.x) * s, y: start.y + (end.y - start.y) * s };
 }
+
+export function stepJointController(angles, velocities, desiredAngles, dt, kp, kd) {
+  const nextAngles = [];
+  const nextVelocities = [];
+
+  for (let i = 0; i < angles.length; i++) {
+    const error = wrapAngle(desiredAngles[i] - angles[i]);
+    const acceleration = kp * error - kd * velocities[i];
+    const velocity = (velocities[i] + acceleration * dt) * 0.995;
+    nextVelocities.push(velocity);
+    nextAngles.push(wrapAngle(angles[i] + velocity * dt));
+  }
+
+  return { angles: nextAngles, velocities: nextVelocities };
+}
