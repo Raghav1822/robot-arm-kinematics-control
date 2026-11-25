@@ -1,8 +1,16 @@
 # 3-Link Robot Arm: Inverse Kinematics & Motion Control
 
-An interactive MATLAB simulation of a 3-link planar robot arm. It demonstrates forward and inverse kinematics, Cartesian trajectory generation, joint-level PD control, and live visualization.
+An end-to-end 3-link planar robot-arm project with a live browser dashboard and MATLAB implementation. It demonstrates forward and inverse kinematics, Cartesian trajectory generation, joint-level PD control, and live visualization.
 
-## Run the simulation
+## Live website
+
+Open the browser dashboard:
+
+**https://raghav1822.github.io/robot-arm-kinematics-control/**
+
+The browser version runs without MATLAB. The MATLAB version provides the equivalent engineering implementation and interactive desktop interface.
+
+## Run the MATLAB simulation
 
 Open MATLAB in this repository directory and run:
 
@@ -11,6 +19,15 @@ robot_arm_kinematics_control
 ```
 
 Use the target and controller sliders, then select **Plan & Run**. The simulation solves inverse kinematics and follows a quintic Cartesian trajectory. Select **Stop** to interrupt motion.
+
+## Run the website locally
+
+```bash
+npm test
+npm run serve
+```
+
+Then open `http://localhost:8080`.
 
 ## Technical approach
 
@@ -25,6 +42,11 @@ All angles are in radians internally; Cartesian coordinates and link lengths are
 ## Project structure
 
 ```text
+index.html                       Interactive browser interface
+app.js                           Browser simulation and controller
+kinematics.js                    Browser kinematics functions
+styles.css                       Browser dashboard styling
+tests/kinematics.test.mjs        JavaScript unit tests
 robot_arm_kinematics_control.m   Interactive simulation and controls
 forward_kinematics.m             Planar forward-kinematics model
 robot_jacobian.m                 Cartesian Jacobian
@@ -35,7 +57,7 @@ wrap_angle.m                     Angle normalization helper
 tests/testRobotArmKinematics.m   MATLAB unit tests
 ```
 
-## Tests
+## MATLAB tests
 
 Run the MATLAB unit tests from the repository directory:
 
@@ -44,6 +66,12 @@ runtests('tests')
 ```
 
 The tests cover the straight-arm forward model, Jacobian derivatives, inverse-kinematics convergence, and trajectory endpoint behavior.
+
+## Browser tests
+
+```bash
+npm test
+```
 
 ## Future engineering extensions
 
